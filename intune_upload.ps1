@@ -1,3 +1,4 @@
+Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -AllowClobber
 Import-Module IntuneWin32App
 
 # Application properties
