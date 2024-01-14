@@ -15,6 +15,12 @@ jobs:
       shell: powershell
       run: |
         Install-Module -Name AzureAD -Scope CurrentUser -Force -AllowClobber
+        
+    - name: Install Microsoft Graph Module
+      shell: pwsh
+      run: |
+        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
+
 
     - name: Run PowerShell Script
       shell: powershell
