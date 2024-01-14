@@ -33,7 +33,7 @@ try {
         installCommandLine = $installCommand
         uninstallCommandLine = $uninstallCommand
         DetectionRule = $detectionRules
-        InstallExperience = @{installType = "system"} # Adjust as needed
+        InstallExperience = "system" # Adjust as needed
         RestartBehavior = "basedOnReturnCode" # Adjust as needed
     }
 
