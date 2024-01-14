@@ -30,4 +30,4 @@ jobs:
     - name: Run PowerShell Script
       shell: powershell
       run: |
-        .\intune_upload.ps1 -TenantId ${{ secrets.TenantId }} -AppId ${{ secrets.AppId }} -AppSecret ${{ secrets.AppSecret }}
+        .\intune_upload.ps1
