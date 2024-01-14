@@ -24,12 +24,12 @@ try {
     exit 1
 }
 
-# Application properties
-$appFilePath = "$(Build.SourcesDirectory)\Images\ubuntu-wsl-latest.intunewin"
+# Application properties - Adjust file path for GitHub Actions
+$appFilePath = "exported.intunewin" # Adjust the path as necessary
 $appName = "Ubuntu-Custom"
 $appDescription = "Custom Ubuntu WSL Image"
 $appPublisher = "DEVOPS-LSEG"
-$installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\ubuntu-image.tar"   
+$installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
 $uninstallCommand = "wsl --unregister Ubuntu"
 $detectionRule = @{
     detectionType = "file"
