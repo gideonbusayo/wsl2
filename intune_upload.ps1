@@ -9,6 +9,12 @@ $appPublisher = "DEVOPS-LSEG"
 $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
 $uninstallCommand = "wsl --unregister Ubuntu"
 
+$detectionRule = @{
+    detectionType = "file"
+    path = "C:\\Program Files\\WSL" 
+    fileName = "wsl.exe" 
+    check32BitOn64System = $false
+}
 # Correctly format the DetectionRule
 $detectionRule = New-Object 'System.Collections.Specialized.OrderedDictionary'
 $detectionRule['detectionType'] = 'file'
@@ -16,6 +22,7 @@ $detectionRule['path'] = "C:\\Program Files\\WSL"
 $detectionRule['fileName'] = "wsl.exe"
 $detectionRule['check32BitOn64System'] = $false
 $detectionRules = @($detectionRule)
+
 
 # Upload the package to Intune
 try {
@@ -26,6 +33,8 @@ try {
         installCommandLine = $installCommand
         uninstallCommandLine = $uninstallCommand
         DetectionRule = $detectionRules
+        InstallExperience = @{installType = "system"} # Adjust as needed
+        RestartBehavior = "basedOnReturnCode" # Adjust as needed
     }
 
     Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
