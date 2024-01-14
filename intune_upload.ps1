@@ -1,3 +1,5 @@
+Import-Module IntuneWin32App
+
 # Application properties
 $appFilePath = ".\exported.intunewin" # Adjust the path as necessary
 $appName = "Ubuntu-Custom"
