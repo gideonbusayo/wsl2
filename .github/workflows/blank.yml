@@ -21,6 +21,11 @@ jobs:
       run: |
         Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
 
+    - name: Install IntuneWin32App
+      shell: pwsh
+      run: |
+        Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -ErrorAction Stop
+
 
     - name: Run PowerShell Script
       shell: powershell
