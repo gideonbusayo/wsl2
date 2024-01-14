@@ -1,0 +1,16 @@
+name: Deploy WSL Image
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up PowerShell
+      uses: actions/setup-powershell@v1
+    - name: Run PowerShell Script
+      run: |
+        .\intune_upload.ps1 -TenantId ${{ secrets.TENANT_ID }} -AppId ${{ secrets.APP_ID }} -AppSecret ${{ secrets.APP_SECRET }}
