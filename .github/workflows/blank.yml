@@ -11,12 +11,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install AzureAD Module
-      shell: pwsh
-      run: |
-        Install-Module -Name AzureAD -Scope CurrentUser -Force -AllowClobber
+    - name: Login to Azure CLI
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Run PowerShell Script
+    - name: Run PowerShell/Azure CLI Script
       shell: pwsh
       run: |
         .\intune_upload.ps1 -TenantId ${{ secrets.TenantId }} -AppId ${{ secrets.AppId }} -AppSecret ${{ secrets.AppSecret }}
