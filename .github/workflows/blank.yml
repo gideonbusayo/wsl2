@@ -11,6 +11,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install AzureAD Module
+      shell: pwsh
+      run: |
+        Install-Module -Name AzureAD -Scope CurrentUser -Force -AllowClobber
+
     - name: Run PowerShell Script
       shell: pwsh
       run: |
