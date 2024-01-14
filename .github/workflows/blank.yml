@@ -20,4 +20,3 @@ jobs:
       shell: pwsh
       run: |
         .\intune_upload.ps1 -TenantId ${{ secrets.TenantId }} -AppId ${{ secrets.AppId }} -AppSecret ${{ secrets.AppSecret }}
-
