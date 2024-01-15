@@ -33,6 +33,7 @@ $detectionRule['fileName'] = "wsl.exe"
 $detectionRule['check32BitOn64System'] = $false
 $detectionRules = @($detectionRule)
 
+
 # Upload the package to Intune
 try {
     $intuneApp = @{
@@ -48,4 +49,6 @@ try {
 
     Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
 } catch {
-    Write-Error "Error uploading
+    Write-Error "Error uploading the package to Intune: $_"
+    exit 1
+}
