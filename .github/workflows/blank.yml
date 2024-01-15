@@ -11,24 +11,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install AzureAD Module
+    - name: Install Required PowerShell Modules
       shell: powershell
       run: |
         Install-Module -Name AzureAD -Scope CurrentUser -Force -AllowClobber
-        
-    - name: Install Microsoft Graph Module
-      shell: pwsh
-      run: |
         Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
+        Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -AllowClobber
 
-    - name: Install IntuneWin32App
-      shell: pwsh
-      run: |
-        Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -ErrorAction Stop
-
-
-    - name: Run PowerShell Script
+    - name: Run PowerShell Script with Azure Credentials
       shell: powershell
       run: |
-        ./intune_upload.ps1 TenantId ${{ secrets.TenantId }} -AppId ${{ secrets.AppId }} -AppSecret ${{ secrets.AppSecret }} -credential ${{ secrets.AZURE_CREDENTIALS }}
-        
+        ./intune_upload.ps1 -CredentialsJson '${{ secrets.AZURE_CREDENTIALS }}'
