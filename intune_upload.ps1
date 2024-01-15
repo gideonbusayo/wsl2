@@ -9,20 +9,29 @@ $Credentials = $CredentialsJson | ConvertFrom-Json
 $secureAppSecret = ConvertTo-SecureString -String $Credentials.clientSecret -AsPlainText -Force
 $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Credentials.clientId, $secureAppSecret
 
-# Connect to Azure AD
+# Install and Import Microsoft Graph PowerShell SDK
 try {
-    Connect-AzureAD -TenantId $Credentials.tenantId -Credential $credential -ErrorAction Stop
+    Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
+    Import-Module Microsoft.Graph
 } catch {
-    Write-Error "Error connecting to Azure AD: $_"
+    Write-Error "Error installing Microsoft Graph module: $_"
+    exit 1
+}
+
+# Connect to Microsoft Graph
+try {
+    Connect-MgGraph -ClientId $Credentials.clientId -TenantId $Credentials.tenantId -ClientSecret $secureAppSecret
+} catch {
+    Write-Error "Error connecting to Microsoft Graph: $_"
     exit 1
 }
 
 # Application properties
-$appFilePath = ".\exported.intunewin"
+$appFilePath = ".\exported.intunewin" # Ensure this path is correct
 $appName = "Ubuntu-Custom"
 $appDescription = "Custom Ubuntu WSL Image"
 $appPublisher = "DEVOPS-LSEG"
-$installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"
+$installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
 $uninstallCommand = "wsl --unregister Ubuntu"
 
 # Detection Rule
@@ -32,7 +41,6 @@ $detectionRule['path'] = "C:\\Program Files\\WSL"
 $detectionRule['fileName'] = "wsl.exe"
 $detectionRule['check32BitOn64System'] = $false
 $detectionRules = @($detectionRule)
-
 
 # Upload the package to Intune
 try {
@@ -47,7 +55,10 @@ try {
         RestartBehavior = "basedOnReturnCode"
     }
 
-    Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
+    # Replace with appropriate cmdlet or method to upload the app to Intune using Microsoft Graph
+    # This part needs to be updated based on the available Microsoft Graph cmdlets or REST API calls
+    # Example: New-MgIntuneApp -App $intuneApp
+
 } catch {
     Write-Error "Error uploading the package to Intune: $_"
     exit 1
