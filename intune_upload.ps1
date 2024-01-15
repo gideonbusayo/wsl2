@@ -22,7 +22,6 @@ try {
 # Connect to Azure AD
 try {
     $secureAppSecret = ConvertTo-SecureString $AppSecret -AsPlainText -Force
-    $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AppId, $secureAppSecret
     Connect-AzureAD -TenantId $TenantId -Credential $credential -ErrorAction Stop
 } catch {
     Write-Error "Error connecting to Azure AD: $_"
