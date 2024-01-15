@@ -1,3 +1,4 @@
+Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
 Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -AllowClobber
 Import-Module IntuneWin32App
 
