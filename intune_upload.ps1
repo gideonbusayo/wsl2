@@ -1,51 +1,37 @@
 param(
-  [string]$TenantId,
-  [string]$AppId,
-  [string]$AppSecret,
-  [string]$credential
+    [string]$CredentialsJson
 )
 
-# Install required modules
-try {
-    Install-Module -Name AzureAD -Force -AllowClobber -ErrorAction Stop
-    Install-Module -Name Microsoft.Graph.Intune -Force -AllowClobber -ErrorAction Stop
-    Install-Module -Name IntuneWin32App -Force -AllowClobber -ErrorAction Stop
-} catch {
-    Write-Error "Error installing required modules: $_"
-    exit 1
-}
+# Convert JSON credentials to a PowerShell object
+$Credentials = $CredentialsJson | ConvertFrom-Json
+
+# Create a credential object
+$secureAppSecret = ConvertTo-SecureString -String $Credentials.clientSecret -AsPlainText -Force
+$credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Credentials.clientId, $secureAppSecret
 
 # Connect to Azure AD
 try {
-    $secureAppSecret = ConvertTo-SecureString $AppSecret -AsPlainText -Force
-    Connect-AzureAD -TenantId $TenantId -Credential $credential -ErrorAction Stop
+    Connect-AzureAD -TenantId $Credentials.tenantId -Credential $credential -ErrorAction Stop
 } catch {
     Write-Error "Error connecting to Azure AD: $_"
     exit 1
 }
 
 # Application properties
-$appFilePath = ".\exported.intunewin" # Adjust the path as necessary
+$appFilePath = ".\exported.intunewin"
 $appName = "Ubuntu-Custom"
 $appDescription = "Custom Ubuntu WSL Image"
 $appPublisher = "DEVOPS-LSEG"
-$installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
+$installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"
 $uninstallCommand = "wsl --unregister Ubuntu"
 
-$detectionRule = @{
-    detectionType = "file"
-    path = "C:\\Program Files\\WSL" 
-    fileName = "wsl.exe" 
-    check32BitOn64System = $false
-}
-# Correctly format the DetectionRule
+# Detection Rule
 $detectionRule = New-Object 'System.Collections.Specialized.OrderedDictionary'
 $detectionRule['detectionType'] = 'file'
 $detectionRule['path'] = "C:\\Program Files\\WSL"
 $detectionRule['fileName'] = "wsl.exe"
 $detectionRule['check32BitOn64System'] = $false
 $detectionRules = @($detectionRule)
-
 
 # Upload the package to Intune
 try {
@@ -56,12 +42,10 @@ try {
         installCommandLine = $installCommand
         uninstallCommandLine = $uninstallCommand
         DetectionRule = $detectionRules
-        InstallExperience = "system" # Adjust as needed
-        RestartBehavior = "basedOnReturnCode" # Adjust as needed
+        InstallExperience = "system"
+        RestartBehavior = "basedOnReturnCode"
     }
 
     Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
 } catch {
-    Write-Error "Error uploading the package to Intune: $_"
-    exit 1
-}
+    Write-Error "Error uploading
