@@ -1,5 +1,6 @@
 Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -AllowClobber
 Import-Module IntuneWin32App
+Connect-MSIntuneGraph -TenantID $TenantID
 # Application properties
 $appFilePath = ".\exported.intunewin" # Adjust the path as necessary
 $appName = "Ubuntu-Custom"
