@@ -31,13 +31,13 @@ jobs:
       shell: powershell
       run: |
         Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
-        az login --service-principal --${{ secrets.AZURE_CREDENTIALS }} azure-credentials.json
+        
         # Application properties
-        $appFilePath = ".\exported.intunewin" # Adjust the path as necessary
+        $appFilePath = ".\exported.intunewin" # Ensure this path is correct
         $appName = "Ubuntu-Custom"
         $appDescription = "Custom Ubuntu WSL Image"
         $appPublisher = "DEVOPS-LSEG"
-        $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
+        $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"
         $uninstallCommand = "wsl --unregister Ubuntu"
 
         # Detection Rule
@@ -48,20 +48,12 @@ jobs:
         $detectionRule['check32BitOn64System'] = $false
         $detectionRules = @($detectionRule)
 
-        # Upload the package to Intune
-        try {
-            $intuneApp = @{
-                displayName = $appName
-                description = $appDescription
-                publisher = $appPublisher
-                installCommandLine = $installCommand
-                uninstallCommandLine = $uninstallCommand
-                DetectionRule = $detectionRules
-                InstallExperience = "system"
-                RestartBehavior = "basedOnReturnCode"
-            }
+        $DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -FileOrFolder "wsl.exe" -Path "C:\\Program Files\\WSL" -Check32BitOn64System $false -DetectionType "exists"
 
-            Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
+        $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem 1909
+
+        try {
+            Add-IntuneWin32App -FilePath $appFilePath -DisplayName $appName -Description $appDescription -Publisher $appPublisher -InstallExperience "system" -RestartBehavior "suppress" -DetectionRule $DetectionRule -RequirementRule $RequirementRule -InstallCommandLine $installCommand -UninstallCommandLine $uninstallCommand -Verbose
         } catch {
             Write-Error "Error uploading the package to Intune: $_"
             exit 1
