@@ -50,7 +50,7 @@ jobs:
 
         $DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -FileOrFolder "wsl.exe" -Path "C:\\Program Files\\WSL" -Check32BitOn64System $false -DetectionType "exists"
 
-        $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem 1909
+        $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem W10_21H1
 
         try {
             Add-IntuneWin32App -FilePath $appFilePath -DisplayName $appName -Description $appDescription -Publisher $appPublisher -InstallExperience "system" -RestartBehavior "suppress" -DetectionRule $DetectionRule -RequirementRule $RequirementRule -InstallCommandLine $installCommand -UninstallCommandLine $uninstallCommand -Verbose
