@@ -1,7 +1,7 @@
 Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -AllowClobber
 Import-Module IntuneWin32App
 # Application properties
-$appFilePath = ".\test.intunewin" # Adjust the path as necessary
+$appFilePath = ".\exported.intunewin" # Adjust the path as necessary
 $appName = "Ubuntu-Custom"
 $appDescription = "Custom Ubuntu WSL Image"
 $appPublisher = "DEVOPS-LSEG"
