@@ -6,8 +6,6 @@ param(
 
 # Install required modules
 try {
-    Install-Module -Name AzureAD -Force -ErrorAction Stop
-    Install-Module -Name Microsoft.Graph.Intune -Force -ErrorAction Stop
     Install-Module -Name IntuneWin32App -Force -ErrorAction Stop
     Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber
 } catch {
