@@ -6,9 +6,7 @@ param(
 
 # Install required modules
 try {
-    Uninstall-Module -Name AzureRM -AllVersions -Force
     Install-Module -Name IntuneWin32App -Force -ErrorAction Stop
-    Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber
 } catch {
     Write-Error "Error installing required modules: $_"
     exit 1
