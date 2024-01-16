@@ -31,7 +31,7 @@ jobs:
       shell: powershell
       run: |
         Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
-        Connect-MSIntuneGraph -TenantId ${{ secrets.TENANTID }}
+        az login --service-principal --${{ secrets.AZURE_CREDENTIALS }} azure-credentials.json
         # Application properties
         $appFilePath = ".\exported.intunewin" # Adjust the path as necessary
         $appName = "Ubuntu-Custom"
