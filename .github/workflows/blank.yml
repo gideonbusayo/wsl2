@@ -9,19 +9,58 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
     - name: Install AzureAD Module
       shell: powershell
       run: |
         Install-Module -Name AzureAD -Scope CurrentUser -Force -AllowClobber
+
+    - name: Install IntuneWin32App Module
+      shell: powershell
+      run: |
+        Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -ErrorAction Stop
+
     - name: Login to Azure CLI
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
-    - name: Run PowerShell Script
+
+    - name: Upload Package to Intune
       shell: powershell
       run: |
-        ./intune_upload.ps1 -TenantId ${{ secrets.TENANTID }} -AppId ${{ secrets.APPID }} -AppSecret ${{ secrets.APPSECRET }}
-        
+        # Application properties
+        $appFilePath = ".\exported.intunewin" # Adjust the path as necessary
+        $appName = "Ubuntu-Custom"
+        $appDescription = "Custom Ubuntu WSL Image"
+        $appPublisher = "DEVOPS-LSEG"
+        $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
+        $uninstallCommand = "wsl --unregister Ubuntu"
+
+        # Detection Rule
+        $detectionRule = New-Object 'System.Collections.Specialized.OrderedDictionary'
+        $detectionRule['detectionType'] = 'file'
+        $detectionRule['path'] = "C:\\Program Files\\WSL"
+        $detectionRule['fileName'] = "wsl.exe"
+        $detectionRule['check32BitOn64System'] = $false
+        $detectionRules = @($detectionRule)
+
+        # Upload the package to Intune
+        try {
+            $intuneApp = @{
+                displayName = $appName
+                description = $appDescription
+                publisher = $appPublisher
+                installCommandLine = $installCommand
+                uninstallCommandLine = $uninstallCommand
+                DetectionRule = $detectionRules
+                InstallExperience = "system"
+                RestartBehavior = "basedOnReturnCode"
+            }
+
+            Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
+        } catch {
+            Write-Error "Error uploading the package to Intune: $_"
+            exit 1
+        }
