@@ -12,7 +12,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v2
 
-    - name: Install and Configure Azure Modules
+    - name: Install and Configure Azure Modules, then Upload to Intune
       shell: powershell
       run: |
         # Install AzureAD and IntuneWin32App modules
@@ -24,15 +24,14 @@ jobs:
         $securePassword = ConvertTo-SecureString $creds.clientSecret -AsPlainText -Force
         $psCredential = New-Object System.Management.Automation.PSCredential ($creds.clientId, $securePassword)
         az login --service-principal -u $creds.clientId -p $securePassword -t $creds.tenantId
-
+        
         # Application properties
-        $appFilePath = ".\exported.intunewin"
+        $appFilePath = ".\exported.intunewin" # Ensure this path is correct
         $appName = "Ubuntu-Custom"
         $appDescription = "Custom Ubuntu WSL Image"
         $appPublisher = "DEVOPS-LSEG"
-        $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
+        $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"
         $uninstallCommand = "wsl --unregister Ubuntu"
-
         # Detection Rule
         $detectionRule = New-Object 'System.Collections.Specialized.OrderedDictionary'
         $detectionRule['detectionType'] = 'file'
@@ -40,21 +39,10 @@ jobs:
         $detectionRule['fileName'] = "wsl.exe"
         $detectionRule['check32BitOn64System'] = $false
         $detectionRules = @($detectionRule)
-
-        # Upload the package to Intune
+        $DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -FileOrFolder "wsl.exe" -Path "C:\\Program Files\\WSL" -Check32BitOn64System $false -DetectionType "exists"
+        $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem W10_21H1
         try {
-            $intuneApp = @{
-                displayName = $appName
-                description = $appDescription
-                publisher = $appPublisher
-                installCommandLine = $installCommand
-                uninstallCommandLine = $uninstallCommand
-                DetectionRule = $detectionRules
-                InstallExperience = "system"
-                RestartBehavior = "basedOnReturnCode"
-            }
-
-            Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
+            Add-IntuneWin32App -FilePath $appFilePath -DisplayName $appName -Description $appDescription -Publisher $appPublisher -InstallExperience "system" -RestartBehavior "suppress" -DetectionRule $DetectionRule -RequirementRule $RequirementRule -InstallCommandLine $installCommand -UninstallCommandLine $uninstallCommand -Verbose
         } catch {
             Write-Error "Error uploading the package to Intune: $_"
             exit 1
