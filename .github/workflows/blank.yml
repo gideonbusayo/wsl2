@@ -30,8 +30,8 @@ jobs:
     - name: Upload Package to Intune
       shell: powershell
       run: |
-        Install-Module -Name Microsoft.Graph -Scope CurrentUser -Force -AllowClobber
-        Connect-MSIntuneGraph -TenantId ${{ secrets.TENANTID }}
+        Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber
+        az login --service-principal --credential-file ${{ secrets.AZURE_CREDENTIALS }}
         # Application properties
         $appFilePath = ".\exported.intunewin" # Ensure this path is correct
         $appName = "Ubuntu-Custom"
