@@ -12,32 +12,25 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v2
 
-    - name: Install AzureAD Module
+    - name: Install and Configure Azure Modules
       shell: powershell
       run: |
+        # Install AzureAD and IntuneWin32App modules
         Install-Module -Name AzureAD -Scope CurrentUser -Force -AllowClobber
-
-    - name: Install IntuneWin32App Module
-      shell: powershell
-      run: |
         Install-Module -Name IntuneWin32App -Scope CurrentUser -Force -ErrorAction Stop
 
-    - name: Login to Azure CLI
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        # Login to Azure CLI using service principal
+        $creds = '${{ secrets.AZURE_CREDENTIALS }}' | ConvertFrom-Json
+        $securePassword = ConvertTo-SecureString $creds.clientSecret -AsPlainText -Force
+        $psCredential = New-Object System.Management.Automation.PSCredential ($creds.clientId, $securePassword)
+        az login --service-principal -u $creds.clientId -p $securePassword -t $creds.tenantId
 
-    - name: Upload Package to Intune
-      shell: powershell
-      run: |
-        Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber
-        az login --service-principal --credential-file ${{ secrets.AZURE_CREDENTIALS }}
         # Application properties
-        $appFilePath = ".\exported.intunewin" # Ensure this path is correct
+        $appFilePath = ".\exported.intunewin"
         $appName = "Ubuntu-Custom"
         $appDescription = "Custom Ubuntu WSL Image"
         $appPublisher = "DEVOPS-LSEG"
-        $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"
+        $installCommand = "wsl --import Ubuntu C:\WSL\Ubuntu .\exported.tar"   
         $uninstallCommand = "wsl --unregister Ubuntu"
 
         # Detection Rule
@@ -48,12 +41,20 @@ jobs:
         $detectionRule['check32BitOn64System'] = $false
         $detectionRules = @($detectionRule)
 
-        $DetectionRule = New-IntuneWin32AppDetectionRuleFile -Existence -FileOrFolder "wsl.exe" -Path "C:\\Program Files\\WSL" -Check32BitOn64System $false -DetectionType "exists"
-
-        $RequirementRule = New-IntuneWin32AppRequirementRule -Architecture x64 -MinimumSupportedOperatingSystem W10_21H1
-
+        # Upload the package to Intune
         try {
-            Add-IntuneWin32App -FilePath $appFilePath -DisplayName $appName -Description $appDescription -Publisher $appPublisher -InstallExperience "system" -RestartBehavior "suppress" -DetectionRule $DetectionRule -RequirementRule $RequirementRule -InstallCommandLine $installCommand -UninstallCommandLine $uninstallCommand -Verbose
+            $intuneApp = @{
+                displayName = $appName
+                description = $appDescription
+                publisher = $appPublisher
+                installCommandLine = $installCommand
+                uninstallCommandLine = $uninstallCommand
+                DetectionRule = $detectionRules
+                InstallExperience = "system"
+                RestartBehavior = "basedOnReturnCode"
+            }
+
+            Add-IntuneWin32App @intuneApp -FilePath $appFilePath -ErrorAction Stop
         } catch {
             Write-Error "Error uploading the package to Intune: $_"
             exit 1
